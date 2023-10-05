@@ -1,36 +1,22 @@
 require("dotenv").config();
-const Axios = require("axios");
+const axios = require("../axios");
 
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const { API_URL, API_USERNAME, API_PASSWORD } = process.env;
+const { API_URL } = process.env;
 
-const axios = Axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
+const login = require("../functions/login")
+const pluck = require("../functions/pluck")
+const getTeams = require("../functions/get-teams")
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("team-draw")
     .setDescription("Draw the teams"),
   async execute(interaction) {
-    const data = {
-      username: API_USERNAME,
-      password: API_PASSWORD,
-    };
-    let response = await axios.post("/account/login", data);
-    const TOKEN = response.data.token;
+    const TOKEN = await login()
 
-    response = await axios.get("/teamdraw", {
-      headers: {
-        Authorization: `Bearer ${TOKEN}`,
-      },
-    });
-
-    let teams = response.data;
-
-    const pluck = (arr, key) => arr.map((i) => i[key]);
-
+    const teams = await getTeams(TOKEN);
+    
     const fields = [];
 
     teams.forEach((team) => {
